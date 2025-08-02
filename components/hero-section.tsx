@@ -8,16 +8,19 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { Card, CardContent } from "@/components/ui/card"
 import { ShoppingCart, Truck } from "lucide-react"
 import ShippingCalculator from "./shipping-calculator"
+import { track } from "@vercel/analytics/react" // Import track function
 
 export default function HeroSection() {
   const [showOrderModal, setShowOrderModal] = useState(false)
   const [showShippingModal, setShowShippingModal] = useState(false)
 
   const handleOrderNow = () => {
+    track("Pesan Sekarang Clicked", { location: "Hero Section" }) // Custom event tracking
     setShowOrderModal(true)
   }
 
   const handleCheckShipping = () => {
+    track("Cek Ongkir Clicked", { location: "Hero Section" }) // Custom event tracking
     setShowShippingModal(true)
   }
 
@@ -30,6 +33,7 @@ export default function HeroSection() {
   }
 
   const handleDirectOrder = () => {
+    track("Chat WhatsApp Sekarang Clicked", { location: "Hero Order Modal" }) // Custom event tracking
     const message = `Halo, saya tertarik dengan produk Singkong Keju Frozen Mbah Wiryo!
 
 Mohon informasi:
@@ -158,6 +162,7 @@ Terima kasih!`
                       </p>
                       <Button
                         onClick={() => {
+                          track("Lihat Produk Dulu Clicked", { location: "Hero Order Modal" }) // Custom event tracking
                           handleCloseOrderModal()
                           document.getElementById("produk")?.scrollIntoView({ behavior: "smooth" })
                         }}
@@ -183,6 +188,7 @@ Terima kasih!`
                       </p>
                       <Button
                         onClick={() => {
+                          track("Cek Ongkir Dulu Clicked", { location: "Hero Order Modal" }) // Custom event tracking
                           handleCloseOrderModal()
                           handleCheckShipping()
                         }}

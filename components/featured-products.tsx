@@ -7,6 +7,7 @@ import { Card, CardContent } from "@/components/ui/card"
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 import { Truck, ShoppingCart } from "lucide-react"
 import ShippingCalculator from "./shipping-calculator"
+import { track } from "@vercel/analytics/react" // Import track function
 
 export default function FeaturedProducts() {
   const [selectedProduct, setSelectedProduct] = useState<string | null>(null)
@@ -31,11 +32,13 @@ export default function FeaturedProducts() {
   ]
 
   const handleCheckShipping = (productName: string) => {
+    track("Cek Ongkir Clicked", { product: productName, location: "Featured Products" }) // Custom event tracking
     setSelectedProduct(productName)
     setShowShippingModal(true)
   }
 
   const handleOrderNow = (productName: string) => {
+    track("Pesan Sekarang Clicked", { product: productName, location: "Featured Products" }) // Custom event tracking
     setSelectedProduct(productName)
     setShowOrderModal(true)
   }
@@ -51,6 +54,7 @@ export default function FeaturedProducts() {
   }
 
   const handleDirectOrder = () => {
+    track("Pesan via WhatsApp Clicked", { product: selectedProduct, location: "Order Modal" }) // Custom event tracking
     const message = `Halo, saya ingin memesan ${selectedProduct}!
 
 Mohon informasi:
@@ -185,6 +189,7 @@ Terima kasih!`
                       </p>
                       <Button
                         onClick={() => {
+                          track("Cek Ongkir Dulu Clicked", { product: selectedProduct, location: "Order Modal" }) // Custom event tracking
                           handleCloseOrderModal()
                           handleCheckShipping(selectedProduct!)
                         }}
