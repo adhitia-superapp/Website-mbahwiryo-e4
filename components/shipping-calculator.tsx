@@ -85,8 +85,8 @@ export default function ShippingCalculator({ isModal = false, onClose, productNa
 
       if (data.rajaongkir?.results) {
         setProvinces(data.rajaongkir.results)
-        // Check if we're using fallback data (less than 10 provinces means likely fallback)
-        setIsUsingFallback(data.rajaongkir.results.length <= 10)
+        // Check if we're using fallback data (less than 20 provinces means likely fallback)
+        setIsUsingFallback(data.rajaongkir.results.length < 20)
       } else {
         throw new Error("Invalid response format")
       }
@@ -236,8 +236,8 @@ export default function ShippingCalculator({ isModal = false, onClose, productNa
         <Alert className="mb-6 border-blue-400 bg-blue-50">
           <Info className="h-4 w-4 text-blue-600" />
           <AlertDescription className="text-blue-800">
-            <strong>Mode Offline:</strong> Menggunakan data estimasi. Untuk harga akurat, silakan hubungi kami via
-            WhatsApp.
+            <strong>Mode Estimasi:</strong> Menggunakan data perkiraan ongkir. Untuk harga akurat dan real-time, silakan
+            hubungi kami via WhatsApp.
           </AlertDescription>
         </Alert>
       )}

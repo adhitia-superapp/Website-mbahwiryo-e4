@@ -1,126 +1,121 @@
-"use client"
-
-import Image from "next/image"
+import { Button } from "@/components/ui/button"
 import Link from "next/link"
-import { MapPin, Phone, Mail, Instagram, ShoppingBag } from "lucide-react"
+import { Facebook, Instagram, Twitter, Mail, Phone, MapPin } from "lucide-react"
+import Image from "next/image"
 
 export default function Footer() {
   return (
-    <footer id="kontak" className="bg-white border-t border-gray-200 py-12">
-      <div className="container mx-auto px-4">
-        <div className="grid md:grid-cols-4 gap-8">
-          {/* Logo & Description */}
-          <div className="md:col-span-2">
-            <div className="flex items-center mb-4">
-              <Image
-                src="https://hebbkx1anhila5yf.public.blob.vercel-storage.com/logo%20mbah%20wiryo%20singkong%20keju%20frozen-gTBSLC2iCxKy9d3FkIGInTGNbZ4laQ.png"
-                alt="Mbah Wiryo Logo"
-                width={60}
-                height={60}
-                className="mr-3"
-              />
-              <div>
-                <h3 className="text-xl font-bold text-gray-900">Mbah Wiryo</h3>
-                <p className="text-gray-600">Premium Cassava Cheese</p>
-              </div>
-            </div>
-            <p className="text-gray-600 mb-4">
-              Singkong keju frozen berkualitas premium dengan peluang bisnis menguntungkan untuk semua kalangan.
-            </p>
+    <footer className="bg-amber-900 text-amber-100 py-12">
+      <div className="container mx-auto px-4 grid grid-cols-1 md:grid-cols-4 gap-8">
+        {/* Brand Info */}
+        <div className="flex flex-col items-center md:items-start text-center md:text-left">
+          <Link href="#home" className="flex items-center mb-4" prefetch={false}>
+            {" "}
+            {/* Updated to #home */}
+            <Image
+              src="/logo-mbah-wiryo-singkong-keju-frozen.png"
+              alt="Mbah Wiryo Logo"
+              width={40}
+              height={40}
+              className="mr-2"
+            />
+            <span className="text-2xl font-bold text-white">Mbah Wiryo</span>
+          </Link>
+          <p className="text-amber-200 text-sm mb-4">
+            Singkong Keju Frozen Gurih, Renyah, Praktis! Nikmati kelezatan khas Mbah Wiryo.
+          </p>
+          <div className="flex space-x-4">
+            <Link href="#" className="text-amber-200 hover:text-white transition-colors" prefetch={false}>
+              <Facebook className="w-6 h-6" />
+            </Link>
+            <Link href="#" className="text-amber-200 hover:text-white transition-colors" prefetch={false}>
+              <Instagram className="w-6 h-6" />
+            </Link>
+            <Link href="#" className="text-amber-200 hover:text-white transition-colors" prefetch={false}>
+              <Twitter className="w-6 h-6" />
+            </Link>
           </div>
+        </div>
 
-          {/* Contact Info */}
-          <div>
-            <h4 className="text-lg font-bold mb-4 text-gray-900">Kontak Kami</h4>
-            <div className="space-y-3">
-              <div className="flex items-start space-x-3">
-                <MapPin className="w-5 h-5 text-amber-600 mt-0.5 flex-shrink-0" />
-                <p className="text-gray-600 text-sm">
-                  Jl. Cangkringan, Salakan, Selomartani, Kec. Kalasan, Kabupaten Sleman, DIY 55571
-                </p>
-              </div>
-              <div className="flex items-center space-x-3">
-                <Phone className="w-5 h-5 text-amber-600" />
-                <Link
-                  href="https://wa.me/6282147566278"
-                  className="text-gray-600 hover:text-amber-600 transition-colors"
-                >
-                  0821-4756-6278
-                </Link>
-              </div>
-              <div className="flex items-center space-x-3">
-                <Mail className="w-5 h-5 text-amber-600" />
-                <Link
-                  href="mailto:id.mbahwiryo@gmail.com"
-                  className="text-gray-600 hover:text-amber-600 transition-colors"
-                >
-                  id.mbahwiryo@gmail.com
-                </Link>
-              </div>
-            </div>
-          </div>
-
-          {/* Social Media & Quick Links */}
-          <div>
-            <h4 className="text-lg font-bold mb-4 text-gray-900">Ikuti Kami</h4>
-            <div className="space-y-3 mb-6">
-              <Link
-                href="https://instagram.com/mbahwiryo.official"
-                target="_blank"
-                className="flex items-center space-x-3 text-gray-600 hover:text-amber-600 transition-colors"
-              >
-                <Instagram className="w-5 h-5 text-amber-600" />
-                <span>@mbahwiryo.official</span>
-              </Link>
-              <Link
-                href="https://shopee.co.id/singkongpremium.mbahwiryo.id"
-                target="_blank"
-                className="flex items-center space-x-3 text-gray-600 hover:text-amber-600 transition-colors"
-              >
-                <ShoppingBag className="w-5 h-5 text-amber-600" />
-                <span>Shopee Store</span>
-              </Link>
-            </div>
-
-            <h5 className="font-medium mb-2 text-gray-900">Navigasi Cepat</h5>
-            <div className="space-y-1 text-sm">
-              <button
-                onClick={() => document.getElementById("beranda")?.scrollIntoView({ behavior: "smooth" })}
-                className="block text-gray-600 hover:text-amber-600 transition-colors text-left cursor-pointer"
-              >
-                Beranda
-              </button>
-              <button
-                onClick={() => document.getElementById("produk")?.scrollIntoView({ behavior: "smooth" })}
-                className="block text-gray-600 hover:text-amber-600 transition-colors text-left cursor-pointer"
-              >
+        {/* Quick Links */}
+        <div>
+          <h3 className="text-lg font-semibold text-white mb-4 text-center md:text-left">Tautan Cepat</h3>
+          <ul className="space-y-2 text-center md:text-left">
+            <li>
+              <Link href="#produk" className="text-amber-200 hover:text-white transition-colors" prefetch={false}>
+                {" "}
+                {/* Updated to #produk */}
                 Produk
-              </button>
-              <button
-                onClick={() => document.getElementById("reseller")?.scrollIntoView({ behavior: "smooth" })}
-                className="block text-gray-600 hover:text-amber-600 transition-colors text-left cursor-pointer"
+              </Link>
+            </li>
+            <li>
+              <Link href="#advantages" className="text-amber-200 hover:text-white transition-colors" prefetch={false}>
+                Keunggulan
+              </Link>
+            </li>
+            <li>
+              <Link
+                href="#reseller-benefits"
+                className="text-amber-200 hover:text-white transition-colors"
+                prefetch={false}
               >
                 Reseller
-              </button>
-              <button
-                onClick={() => document.getElementById("testimoni")?.scrollIntoView({ behavior: "smooth" })}
-                className="block text-gray-600 hover:text-amber-600 transition-colors text-left cursor-pointer"
-              >
+              </Link>
+            </li>
+            <li>
+              <Link href="#testimonials" className="text-amber-200 hover:text-white transition-colors" prefetch={false}>
                 Testimoni
-              </button>
-              <button
-                onClick={() => document.getElementById("kontak")?.scrollIntoView({ behavior: "smooth" })}
-                className="block text-gray-600 hover:text-amber-600 transition-colors text-left cursor-pointer"
-              >
-                Kontak
-              </button>
-            </div>
-          </div>
+              </Link>
+            </li>
+            <li>
+              <Link href="#ongkir" className="text-amber-200 hover:text-white transition-colors" prefetch={false}>
+                Cek Ongkir
+              </Link>
+            </li>
+          </ul>
         </div>
 
-        <div className="border-t border-gray-200 mt-8 pt-8 text-center">
-          <p className="text-gray-500">© 2025 Mbah Wiryo. All rights reserved.</p>
+        {/* Contact Info */}
+        <div>
+          <h3 className="text-lg font-semibold text-white mb-4 text-center md:text-left">Hubungi Kami</h3>
+          <ul className="space-y-2 text-amber-200 text-center md:text-left">
+            <li className="flex items-center justify-center md:justify-start">
+              <Mail className="w-5 h-5 mr-2" />
+              <span>info@mbahwiryo.com</span>
+            </li>
+            <li className="flex items-center justify-center md:justify-start">
+              <Phone className="w-5 h-5 mr-2" />
+              <span>+62 821-4756-6278</span>
+            </li>
+            <li className="flex items-start justify-center md:justify-start">
+              <MapPin className="w-5 h-5 mr-2 mt-1" />
+              <span>
+                Jl. Raya Tajem No.123, Maguwoharjo, Kec. Depok, Kabupaten Sleman, Daerah Istimewa Yogyakarta 55281
+              </span>
+            </li>
+          </ul>
         </div>
+
+        {/* Newsletter (Optional) */}
+        <div>
+          <h3 className="text-lg font-semibold text-white mb-4 text-center md:text-left">Newsletter</h3>
+          <p className="text-amber-200 text-sm mb-4 text-center md:text-left">
+            Dapatkan update terbaru dan promo menarik langsung ke inbox Anda.
+          </p>
+          <form className="flex flex-col gap-2">
+            <input
+              type="email"
+              placeholder="Masukkan email Anda"
+              className="p-2 rounded-md bg-amber-800 text-white placeholder-amber-300 focus:outline-none focus:ring-2 focus:ring-yellow-400"
+            />
+            <Button type="submit" className="bg-yellow-400 hover:bg-yellow-500 text-amber-900 font-bold">
+              Subscribe
+            </Button>
+          </form>
+        </div>
+      </div>
+      <div className="border-t border-amber-800 mt-8 pt-8 text-center text-amber-300 text-sm">
+        &copy; {new Date().getFullYear()} Mbah Wiryo. All rights reserved.
       </div>
     </footer>
   )

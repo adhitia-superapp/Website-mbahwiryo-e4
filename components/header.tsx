@@ -1,169 +1,159 @@
 "use client"
 
 import { useState } from "react"
-import Image from "next/image"
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
-import { Menu, X } from "lucide-react"
+import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet"
+import { Menu, ShoppingCart, Truck } from "lucide-react"
+import Image from "next/image"
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog"
+import ShippingCalculator from "./shipping-calculator"
 
 export default function Header() {
-  const [isMenuOpen, setIsMenuOpen] = useState(false)
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
+  const [isOngkirModalOpen, setIsOngkirModalOpen] = useState(false)
 
   return (
-    <header className="sticky top-0 z-50 bg-white shadow-md">
-      <div className="container mx-auto px-4">
-        <div className="flex items-center justify-between h-16">
-          {/* Logo */}
-          <Link href="/" className="flex items-center">
-            <Image
-              src="https://hebbkx1anhila5yf.public.blob.vercel-storage.com/logo%20mbah%20wiryo%20singkong%20keju%20frozen-gTBSLC2iCxKy9d3FkIGInTGNbZ4laQ.png"
-              alt="Mbah Wiryo Logo"
-              width={60}
-              height={60}
-              className="mr-2"
-            />
+    <header className="sticky top-0 z-50 w-full bg-white shadow-sm">
+      <div className="container mx-auto flex h-16 items-center justify-between px-4 md:px-6">
+        <Link href="#home" className="flex items-center gap-2" prefetch={false}>
+          {" "}
+          {/* Updated to #home */}
+          <Image
+            src="/logo-mbah-wiryo-singkong-keju-frozen.png"
+            alt="Mbah Wiryo Logo"
+            width={32}
+            height={32}
+            className="rounded-full"
+          />
+          <span className="text-xl font-bold text-amber-900">Mbah Wiryo</span>
+        </Link>
+        <nav className="hidden md:flex items-center gap-6">
+          <Link
+            href="#produk"
+            className="text-amber-800 hover:text-amber-900 font-medium transition-colors"
+            prefetch={false}
+          >
+            Produk
           </Link>
-
-          {/* Desktop Navigation */}
-          <nav className="hidden md:flex items-center space-x-8">
-            <button
-              onClick={() => document.getElementById("beranda")?.scrollIntoView({ behavior: "smooth" })}
-              className="text-amber-900 hover:text-amber-600 font-medium cursor-pointer"
-            >
-              Beranda
-            </button>
-            <button
-              onClick={() => document.getElementById("tentang")?.scrollIntoView({ behavior: "smooth" })}
-              className="text-amber-900 hover:text-amber-600 font-medium cursor-pointer"
-            >
-              Tentang Kami
-            </button>
-            <button
-              onClick={() => document.getElementById("produk")?.scrollIntoView({ behavior: "smooth" })}
-              className="text-amber-900 hover:text-amber-600 font-medium cursor-pointer"
-            >
-              Produk
-            </button>
-            <button
-              onClick={() => document.getElementById("ongkir")?.scrollIntoView({ behavior: "smooth" })}
-              className="text-amber-900 hover:text-amber-600 font-medium cursor-pointer"
-            >
-              Cek Ongkir
-            </button>
-            <button
-              onClick={() => document.getElementById("reseller")?.scrollIntoView({ behavior: "smooth" })}
-              className="text-amber-900 hover:text-amber-600 font-medium cursor-pointer"
-            >
-              Jadi Reseller
-            </button>
-            <button
-              onClick={() => document.getElementById("testimoni")?.scrollIntoView({ behavior: "smooth" })}
-              className="text-amber-900 hover:text-amber-600 font-medium cursor-pointer"
-            >
-              Testimoni
-            </button>
-            <button
-              onClick={() => document.getElementById("kontak")?.scrollIntoView({ behavior: "smooth" })}
-              className="text-amber-900 hover:text-amber-600 font-medium cursor-pointer"
-            >
-              Kontak
-            </button>
-          </nav>
-
-          {/* CTA Button */}
-          <div className="hidden md:block">
-            <Button
-              asChild
-              className="bg-yellow-400 hover:bg-yellow-500 text-amber-900 font-bold px-6 py-2 rounded-full shadow-lg"
-            >
-              <Link href="https://wa.me/6282147566278" target="_blank">
-                Gabung Reseller
-              </Link>
+          <Link
+            href="#advantages"
+            className="text-amber-800 hover:text-amber-900 font-medium transition-colors"
+            prefetch={false}
+          >
+            Keunggulan
+          </Link>
+          <Link
+            href="#reseller-benefits"
+            className="text-amber-800 hover:text-amber-900 font-medium transition-colors"
+            prefetch={false}
+          >
+            Reseller
+          </Link>
+          <Link
+            href="#testimonials"
+            className="text-amber-800 hover:text-amber-900 font-medium transition-colors"
+            prefetch={false}
+          >
+            Testimoni
+          </Link>
+          <Button
+            variant="ghost"
+            onClick={() => setIsOngkirModalOpen(true)}
+            className="text-amber-800 hover:text-amber-900 font-medium transition-colors"
+          >
+            <Truck className="w-4 h-4 mr-2" />
+            Cek Ongkir
+          </Button>
+          <Button asChild className="bg-amber-600 hover:bg-amber-700 text-white font-bold">
+            <Link href="https://wa.me/6282147566278" target="_blank">
+              <ShoppingCart className="w-4 h-4 mr-2" />
+              Pesan Sekarang
+            </Link>
+          </Button>
+        </nav>
+        <Sheet open={isMobileMenuOpen} onOpenChange={setIsMobileMenuOpen}>
+          <SheetTrigger asChild>
+            <Button variant="outline" size="icon" className="md:hidden bg-transparent">
+              <Menu className="h-6 w-6" />
+              <span className="sr-only">Toggle navigation menu</span>
             </Button>
-          </div>
-
-          {/* Mobile Menu Button */}
-          <button className="md:hidden" onClick={() => setIsMenuOpen(!isMenuOpen)}>
-            {isMenuOpen ? <X size={24} /> : <Menu size={24} />}
-          </button>
-        </div>
-
-        {/* Mobile Navigation */}
-        {isMenuOpen && (
-          <div className="md:hidden py-4 border-t">
-            <nav className="flex flex-col space-y-4">
-              <button
-                onClick={() => {
-                  document.getElementById("beranda")?.scrollIntoView({ behavior: "smooth" })
-                  setIsMenuOpen(false)
-                }}
-                className="text-amber-900 hover:text-amber-600 font-medium text-left cursor-pointer"
-              >
-                Beranda
-              </button>
-              <button
-                onClick={() => {
-                  document.getElementById("tentang")?.scrollIntoView({ behavior: "smooth" })
-                  setIsMenuOpen(false)
-                }}
-                className="text-amber-900 hover:text-amber-600 font-medium text-left cursor-pointer"
-              >
-                Tentang Kami
-              </button>
-              <button
-                onClick={() => {
-                  document.getElementById("produk")?.scrollIntoView({ behavior: "smooth" })
-                  setIsMenuOpen(false)
-                }}
-                className="text-amber-900 hover:text-amber-600 font-medium text-left cursor-pointer"
+          </SheetTrigger>
+          <SheetContent side="right" className="flex flex-col">
+            <Link href="#home" className="flex items-center gap-2 py-4" prefetch={false}>
+              {" "}
+              {/* Updated to #home */}
+              <Image
+                src="/logo-mbah-wiryo-singkong-keju-frozen.png"
+                alt="Mbah Wiryo Logo"
+                width={32}
+                height={32}
+                className="rounded-full"
+              />
+              <span className="text-xl font-bold text-amber-900">Mbah Wiryo</span>
+            </Link>
+            <nav className="grid gap-4 py-6">
+              <Link
+                href="#produk"
+                className="text-amber-800 hover:text-amber-900 font-medium transition-colors"
+                onClick={() => setIsMobileMenuOpen(false)}
+                prefetch={false}
               >
                 Produk
-              </button>
-              <button
-                onClick={() => {
-                  document.getElementById("ongkir")?.scrollIntoView({ behavior: "smooth" })
-                  setIsMenuOpen(false)
-                }}
-                className="text-amber-900 hover:text-amber-600 font-medium text-left cursor-pointer"
+              </Link>
+              <Link
+                href="#advantages"
+                className="text-amber-800 hover:text-amber-900 font-medium transition-colors"
+                onClick={() => setIsMobileMenuOpen(false)}
+                prefetch={false}
               >
-                Cek Ongkir
-              </button>
-              <button
-                onClick={() => {
-                  document.getElementById("reseller")?.scrollIntoView({ behavior: "smooth" })
-                  setIsMenuOpen(false)
-                }}
-                className="text-amber-900 hover:text-amber-600 font-medium text-left cursor-pointer"
+                Keunggulan
+              </Link>
+              <Link
+                href="#reseller-benefits"
+                className="text-amber-800 hover:text-amber-900 font-medium transition-colors"
+                onClick={() => setIsMobileMenuOpen(false)}
+                prefetch={false}
               >
-                Jadi Reseller
-              </button>
-              <button
-                onClick={() => {
-                  document.getElementById("testimoni")?.scrollIntoView({ behavior: "smooth" })
-                  setIsMenuOpen(false)
-                }}
-                className="text-amber-900 hover:text-amber-600 font-medium text-left cursor-pointer"
+                Reseller
+              </Link>
+              <Link
+                href="#testimonials"
+                className="text-amber-800 hover:text-amber-900 font-medium transition-colors"
+                onClick={() => setIsMobileMenuOpen(false)}
+                prefetch={false}
               >
                 Testimoni
-              </button>
-              <button
+              </Link>
+              <Button
+                variant="ghost"
                 onClick={() => {
-                  document.getElementById("kontak")?.scrollIntoView({ behavior: "smooth" })
-                  setIsMenuOpen(false)
+                  setIsMobileMenuOpen(false)
+                  setIsOngkirModalOpen(true)
                 }}
-                className="text-amber-900 hover:text-amber-600 font-medium text-left cursor-pointer"
+                className="text-amber-800 hover:text-amber-900 font-medium transition-colors justify-start"
               >
-                Kontak
-              </button>
-              <Button asChild className="bg-yellow-400 hover:bg-yellow-500 text-amber-900 font-bold w-full">
-                <Link href="https://wa.me/6282147566278" target="_blank">
-                  Gabung Reseller
+                <Truck className="w-4 h-4 mr-2" />
+                Cek Ongkir
+              </Button>
+              <Button asChild className="bg-amber-600 hover:bg-amber-700 text-white font-bold">
+                <Link href="https://wa.me/6282147566278" target="_blank" onClick={() => setIsMobileMenuOpen(false)}>
+                  <ShoppingCart className="w-4 h-4 mr-2" />
+                  Pesan Sekarang
                 </Link>
               </Button>
             </nav>
-          </div>
-        )}
+          </SheetContent>
+        </Sheet>
       </div>
+      <Dialog open={isOngkirModalOpen} onOpenChange={setIsOngkirModalOpen}>
+        <DialogContent className="sm:max-w-[800px] p-6">
+          <DialogHeader>
+            <DialogTitle className="text-amber-900 text-2xl">Kalkulator Ongkos Kirim</DialogTitle>
+          </DialogHeader>
+          <ShippingCalculator isModal={true} onClose={() => setIsOngkirModalOpen(false)} />
+        </DialogContent>
+      </Dialog>
     </header>
   )
 }

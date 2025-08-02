@@ -3,151 +3,138 @@
 import type React from "react"
 
 import { useState } from "react"
-import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { Phone, Mail, User, MessageSquare } from "lucide-react"
+import { useToast } from "@/hooks/use-toast"
 
 export default function ResellerForm() {
-  const [formData, setFormData] = useState({
-    name: "",
-    whatsapp: "",
-    city: "",
-    quantity: "",
-    message: "",
-  })
+  const [name, setName] = useState("")
+  const [email, setEmail] = useState("")
+  const [phone, setPhone] = useState("")
+  const [message, setMessage] = useState("")
+  const [loading, setLoading] = useState(false)
+  const { toast } = useToast()
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    const message = `Halo, saya ingin gabung jadi reseller Mbah Wiryo!
+    setLoading(true)
 
-Nama: ${formData.name}
-WhatsApp: ${formData.whatsapp}
-Kota: ${formData.city}
-Rencana Pembelian: ${formData.quantity} pak
-${formData.message ? `Pesan: ${formData.message}` : ""}
+    const whatsappMessage = `Halo Mbah Wiryo, saya tertarik menjadi reseller!%0A%0ANama Lengkap: ${name}%0AEmail: ${email}%0ANomor Telepon/WhatsApp: ${phone}%0APesan: ${message || "Tidak ada pesan tambahan."}%0A%0AMohon informasinya lebih lanjut. Terima kasih!`
+    const whatsappUrl = `https://wa.me/6282147566278?text=${whatsappMessage}`
 
-Terima kasih!`
-
-    const whatsappUrl = `https://wa.me/6282147566278?text=${encodeURIComponent(message)}`
+    // Open WhatsApp in a new tab
     window.open(whatsappUrl, "_blank")
+
+    setLoading(false)
+    toast({
+      title: "Formulir Terkirim ke WhatsApp!",
+      description: "Silakan lanjutkan percakapan di WhatsApp untuk pendaftaran reseller.",
+      variant: "default",
+    })
+
+    // Clear form
+    setName("")
+    setEmail("")
+    setPhone("")
+    setMessage("")
   }
 
   return (
-    <section className="py-16 bg-white">
-      <div className="container mx-auto px-4">
-        <div className="max-w-2xl mx-auto">
-          <Card className="shadow-xl">
-            <CardHeader className="text-center bg-gradient-to-r from-yellow-400 to-amber-400 text-amber-900 rounded-t-lg">
-              <CardTitle className="text-2xl md:text-3xl font-bold">
-                Gabung Sekarang & Mulai Jualan dari Rumah!
-              </CardTitle>
-            </CardHeader>
-
-            <CardContent className="p-8">
-              <form onSubmit={handleSubmit} className="space-y-6">
-                <div>
-                  <Label htmlFor="name" className="text-amber-900 font-medium">
-                    Nama Lengkap *
-                  </Label>
-                  <Input
-                    id="name"
-                    type="text"
-                    required
-                    value={formData.name}
-                    onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                    className="mt-1"
-                    placeholder="Masukkan nama lengkap Anda"
-                  />
-                </div>
-
-                <div>
-                  <Label htmlFor="whatsapp" className="text-amber-900 font-medium">
-                    No. WhatsApp *
-                  </Label>
-                  <Input
-                    id="whatsapp"
-                    type="tel"
-                    required
-                    value={formData.whatsapp}
-                    onChange={(e) => setFormData({ ...formData, whatsapp: e.target.value })}
-                    className="mt-1"
-                    placeholder="08xxxxxxxxxx"
-                  />
-                </div>
-
-                <div>
-                  <Label htmlFor="city" className="text-amber-900 font-medium">
-                    Kota / Domisili *
-                  </Label>
-                  <Input
-                    id="city"
-                    type="text"
-                    required
-                    value={formData.city}
-                    onChange={(e) => setFormData({ ...formData, city: e.target.value })}
-                    className="mt-1"
-                    placeholder="Contoh: Yogyakarta"
-                  />
-                </div>
-
-                <div>
-                  <Label htmlFor="quantity" className="text-amber-900 font-medium">
-                    Rencana Pembelian *
-                  </Label>
-                  <Select onValueChange={(value) => setFormData({ ...formData, quantity: value })}>
-                    <SelectTrigger className="mt-1">
-                      <SelectValue placeholder="Pilih jumlah paket" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="10">10 pak</SelectItem>
-                      <SelectItem value="20">20 pak</SelectItem>
-                      <SelectItem value="50">50 pak</SelectItem>
-                      <SelectItem value="100+">100+ pak</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-
-                <div>
-                  <Label htmlFor="message" className="text-amber-900 font-medium">
-                    Pertanyaan / Komentar (Opsional)
-                  </Label>
-                  <Textarea
-                    id="message"
-                    value={formData.message}
-                    onChange={(e) => setFormData({ ...formData, message: e.target.value })}
-                    className="mt-1"
-                    placeholder="Ada pertanyaan khusus?"
-                    rows={3}
-                  />
-                </div>
-
-                <Button
-                  type="submit"
-                  className="w-full bg-yellow-400 hover:bg-yellow-500 text-amber-900 font-bold py-3 text-lg rounded-full shadow-lg"
-                >
-                  Kirim Sekarang
-                </Button>
-              </form>
-
-              <div className="mt-6 text-center">
-                <p className="text-amber-700 mb-2">Atau chat WhatsApp langsung:</p>
-                <Button
-                  asChild
-                  variant="outline"
-                  className="border-yellow-400 text-yellow-600 hover:bg-yellow-50 bg-transparent"
-                >
-                  <Link href="https://wa.me/6282147566278" target="_blank">
-                    Chat WhatsApp Langsung
-                  </Link>
-                </Button>
-              </div>
-            </CardContent>
-          </Card>
+    <section id="reseller-form" className="py-16 bg-gradient-to-br from-yellow-50 to-amber-50">
+      <div className="container mx-auto px-4 max-w-3xl">
+        <div className="text-center mb-12">
+          <h2 className="text-3xl md:text-4xl font-bold text-amber-900 mb-4">Daftar Reseller</h2>
+          <p className="text-amber-700 text-lg">
+            Tertarik menjadi bagian dari keluarga Mbah Wiryo? Isi formulir di bawah ini!
+          </p>
         </div>
+
+        <Card className="shadow-lg">
+          <CardHeader className="bg-gradient-to-r from-yellow-400 to-amber-400 text-amber-900 rounded-t-lg">
+            <CardTitle className="flex items-center space-x-2">
+              <User className="w-5 h-5" />
+              <span>Formulir Pendaftaran</span>
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="p-6 space-y-6">
+            <form onSubmit={handleSubmit} className="space-y-6">
+              <div>
+                <Label htmlFor="name" className="text-amber-900 font-medium flex items-center space-x-2">
+                  <User className="w-4 h-4" />
+                  <span>Nama Lengkap</span>
+                </Label>
+                <Input
+                  id="name"
+                  type="text"
+                  value={name}
+                  onChange={(e) => setName(e.target.value)}
+                  required
+                  className="mt-2"
+                  placeholder="Masukkan nama lengkap Anda"
+                />
+              </div>
+
+              <div>
+                <Label htmlFor="email" className="text-amber-900 font-medium flex items-center space-x-2">
+                  <Mail className="w-4 h-4" />
+                  <span>Email</span>
+                </Label>
+                <Input
+                  id="email"
+                  type="email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  required
+                  className="mt-2"
+                  placeholder="Masukkan alamat email Anda"
+                />
+              </div>
+
+              <div>
+                <Label htmlFor="phone" className="text-amber-900 font-medium flex items-center space-x-2">
+                  <Phone className="w-4 h-4" />
+                  <span>Nomor Telepon/WhatsApp</span>
+                </Label>
+                <Input
+                  id="phone"
+                  type="tel"
+                  value={phone}
+                  onChange={(e) => setPhone(e.target.value)}
+                  required
+                  className="mt-2"
+                  placeholder="Contoh: 081234567890"
+                />
+              </div>
+
+              <div>
+                <Label htmlFor="message" className="text-amber-900 font-medium flex items-center space-x-2">
+                  <MessageSquare className="w-4 h-4" />
+                  <span>Pesan (Opsional)</span>
+                </Label>
+                <Textarea
+                  id="message"
+                  value={message}
+                  onChange={(e) => setMessage(e.target.value)}
+                  className="mt-2"
+                  placeholder="Sampaikan minat Anda atau pertanyaan di sini..."
+                  rows={4}
+                />
+              </div>
+
+              <Button
+                type="submit"
+                disabled={loading}
+                className="w-full bg-yellow-400 hover:bg-yellow-500 text-amber-900 font-bold py-3 text-lg"
+              >
+                {loading ? "Mengarahkan ke WhatsApp..." : "Daftar Sekarang via WhatsApp"}
+              </Button>
+            </form>
+          </CardContent>
+        </Card>
       </div>
     </section>
   )

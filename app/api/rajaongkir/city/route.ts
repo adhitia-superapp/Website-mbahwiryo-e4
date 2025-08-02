@@ -1,116 +1,12 @@
 import { NextResponse } from "next/server"
 
-export async function GET(request: Request) {
-  const { searchParams } = new URL(request.url)
-  const province = searchParams.get("province")
-
-  if (!province) {
-    return NextResponse.json({ error: "Province parameter is required" }, { status: 400 })
-  }
-
-  try {
-    const apiKey = process.env.RAJAONGKIR_API_KEY
-
-    if (!apiKey || apiKey === "your_actual_api_key_here") {
-      console.log(`Using fallback cities for province ${province}`)
-      const fallbackCities = getFallbackCities(province)
-      return NextResponse.json({
-        rajaongkir: {
-          results: fallbackCities,
-        },
-      })
-    }
-
-    console.log(`Fetching cities for province ${province} from RajaOngkir API...`)
-
-    const response = await fetch(`https://api.rajaongkir.com/starter/city?province=${province}`, {
-      method: "GET",
-      headers: {
-        key: apiKey,
-        "Content-Type": "application/json",
-      },
-      cache: "no-store",
-    })
-
-    console.log(`RajaOngkir cities API response status: ${response.status}`)
-
-    if (response.status === 410 || response.status === 401 || !response.ok) {
-      console.warn(`RajaOngkir API error ${response.status}, using fallback cities`)
-      const fallbackCities = getFallbackCities(province)
-      return NextResponse.json({
-        rajaongkir: {
-          results: fallbackCities,
-        },
-      })
-    }
-
-    const data = await response.json()
-
-    if (!data.rajaongkir || !data.rajaongkir.results) {
-      console.error("Invalid response structure from RajaOngkir API:", data)
-      const fallbackCities = getFallbackCities(province)
-      return NextResponse.json({
-        rajaongkir: {
-          results: fallbackCities,
-        },
-      })
-    }
-
-    console.log(`Successfully fetched ${data.rajaongkir.results.length} cities for province ${province}`)
-    return NextResponse.json(data)
-  } catch (error) {
-    console.error("Error fetching cities:", error)
-    const fallbackCities = getFallbackCities(province)
-    return NextResponse.json({
-      rajaongkir: {
-        results: fallbackCities,
-      },
-    })
-  }
-}
-
-function getFallbackCities(provinceId: string) {
+// Comprehensive fallback data for cities by province
+const getFallbackCities = (provinceId?: string) => {
   const cityData: Record<string, any[]> = {
-    "1": [
-      // Bali
-      { city_id: "17", province_id: "1", province: "Bali", type: "Kota", city_name: "Denpasar", postal_code: "80117" },
-      {
-        city_id: "42",
-        province_id: "1",
-        province: "Bali",
-        type: "Kabupaten",
-        city_name: "Badung",
-        postal_code: "80351",
-      },
-      {
-        city_id: "115",
-        province_id: "1",
-        province: "Bali",
-        type: "Kabupaten",
-        city_name: "Gianyar",
-        postal_code: "80519",
-      },
-    ],
     "5": [
       // DI Yogyakarta
       {
-        city_id: "419",
-        province_id: "5",
-        province: "DI Yogyakarta",
-        type: "Kabupaten",
-        city_name: "Sleman",
-        postal_code: "55511",
-      },
-      {
-        city_id: "501",
-        province_id: "5",
-        province: "DI Yogyakarta",
-        type: "Kota",
-        city_name: "Yogyakarta",
-        postal_code: "55111",
-      },
-      {
-        city_id: "420",
+        city_id: "39",
         province_id: "5",
         province: "DI Yogyakarta",
         type: "Kabupaten",
@@ -118,20 +14,36 @@ function getFallbackCities(provinceId: string) {
         postal_code: "55711",
       },
       {
-        city_id: "421",
+        city_id: "153",
         province_id: "5",
         province: "DI Yogyakarta",
         type: "Kabupaten",
         city_name: "Gunung Kidul",
-        postal_code: "55811",
+        postal_code: "55812",
       },
       {
-        city_id: "422",
+        city_id: "207",
         province_id: "5",
         province: "DI Yogyakarta",
         type: "Kabupaten",
         city_name: "Kulon Progo",
         postal_code: "55611",
+      },
+      {
+        city_id: "419",
+        province_id: "5",
+        province: "DI Yogyakarta",
+        type: "Kabupaten",
+        city_name: "Sleman",
+        postal_code: "55513",
+      },
+      {
+        city_id: "440",
+        province_id: "5",
+        province: "DI Yogyakarta",
+        type: "Kota",
+        city_name: "Yogyakarta",
+        postal_code: "55111",
       },
     ],
     "6": [
@@ -219,14 +131,6 @@ function getFallbackCities(provinceId: string) {
         city_name: "Bekasi",
         postal_code: "17837",
       },
-      {
-        city_id: "38",
-        province_id: "9",
-        province: "Jawa Barat",
-        type: "Kabupaten",
-        city_name: "Bekasi",
-        postal_code: "17837",
-      },
     ],
     "10": [
       // Jawa Tengah
@@ -262,22 +166,6 @@ function getFallbackCities(provinceId: string) {
         city_name: "Klaten",
         postal_code: "57411",
       },
-      {
-        city_id: "206",
-        province_id: "10",
-        province: "Jawa Tengah",
-        type: "Kabupaten",
-        city_name: "Magelang",
-        postal_code: "56519",
-      },
-      {
-        city_id: "207",
-        province_id: "10",
-        province: "Jawa Tengah",
-        type: "Kota",
-        city_name: "Magelang",
-        postal_code: "56133",
-      },
     ],
     "11": [
       // Jawa Timur
@@ -305,22 +193,14 @@ function getFallbackCities(provinceId: string) {
         city_name: "Malang",
         postal_code: "65112",
       },
-      {
-        city_id: "248",
-        province_id: "11",
-        province: "Jawa Timur",
-        type: "Kabupaten",
-        city_name: "Malang",
-        postal_code: "65163",
-      },
     ],
   }
 
   return (
-    cityData[provinceId] || [
+    cityData[provinceId || ""] || [
       {
         city_id: "1",
-        province_id: provinceId,
+        province_id: provinceId || "1",
         province: "Unknown",
         type: "Kota",
         city_name: "Kota Utama",
@@ -328,4 +208,96 @@ function getFallbackCities(provinceId: string) {
       },
     ]
   )
+}
+
+export async function GET(request: Request) {
+  const { searchParams } = new URL(request.url)
+  const provinceId = searchParams.get("province")
+  const apiKey = process.env.RAJAONGKIR_API_KEY
+
+  if (!provinceId) {
+    return NextResponse.json({ error: "Province ID is required" }, { status: 400 })
+  }
+
+  // Always use fallback data if API key is not configured properly
+  if (!apiKey || apiKey === "your_actual_api_key_here" || apiKey.length < 10) {
+    console.log(`RAJAONGKIR_API_KEY not configured properly. Using fallback city data for province ${provinceId}`)
+    return NextResponse.json(
+      {
+        rajaongkir: {
+          results: getFallbackCities(provinceId),
+        },
+      },
+      { status: 200 },
+    )
+  }
+
+  try {
+    console.log(`Fetching cities for province ${provinceId} from RajaOngkir API...`)
+
+    const response = await fetch(`https://api.rajaongkir.com/starter/city?province=${provinceId}`, {
+      method: "GET",
+      headers: {
+        key: apiKey,
+        "Content-Type": "application/json",
+      },
+      cache: "no-store",
+    })
+
+    console.log(`RajaOngkir cities API response status: ${response.status}`)
+
+    // Handle specific error statuses
+    if (response.status === 410 || response.status === 401 || response.status === 403) {
+      console.warn(`RajaOngkir API error ${response.status}, using fallback cities for province ${provinceId}`)
+      return NextResponse.json(
+        {
+          rajaongkir: {
+            results: getFallbackCities(provinceId),
+          },
+        },
+        { status: 200 },
+      )
+    }
+
+    if (!response.ok) {
+      const errorText = await response.text()
+      console.error(`RajaOngkir API error: ${response.status} - ${errorText}`)
+      return NextResponse.json(
+        {
+          rajaongkir: {
+            results: getFallbackCities(provinceId),
+          },
+        },
+        { status: 200 },
+      )
+    }
+
+    const data = await response.json()
+
+    // Validate response structure
+    if (!data.rajaongkir || !data.rajaongkir.results || !Array.isArray(data.rajaongkir.results)) {
+      console.error("Invalid response structure from RajaOngkir API:", data)
+      return NextResponse.json(
+        {
+          rajaongkir: {
+            results: getFallbackCities(provinceId),
+          },
+        },
+        { status: 200 },
+      )
+    }
+
+    console.log(`Successfully fetched ${data.rajaongkir.results.length} cities for province ${provinceId}`)
+    return NextResponse.json(data)
+  } catch (error) {
+    console.error("Error fetching cities from RajaOngkir:", error)
+    return NextResponse.json(
+      {
+        rajaongkir: {
+          results: getFallbackCities(provinceId),
+        },
+      },
+      { status: 200 },
+    )
+  }
 }
