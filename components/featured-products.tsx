@@ -5,55 +5,58 @@ import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog"
-import { Star, ShoppingCart, Truck, Phone } from "lucide-react"
+import { Star, ShoppingCart, Truck, Phone, Eye } from "lucide-react"
 import Image from "next/image"
 import Link from "next/link"
 import ShippingCalculator from "./shipping-calculator"
+import { products } from "@/lib/products"
+import { generateWhatsAppMessage, getWhatsAppUrl } from "@/lib/whatsapp-messages"
 
-const products = [
-  {
-    id: 1,
-    name: "Singkong Keju Original Premium Frozen",
-    price: "Rp 19.000", // Adjusted price for 1000g
-    originalPrice: "Rp 22.000", // Adjusted original price for 1000g
-    image: "/images/singkong-keju-frozen-mbah-wiryo-kuning-3.jpeg",
-    rating: 4.9,
-    reviews: 250,
-    description:
-      "Singkong pilihan dengan keju mozarella premium, dibekukan untuk menjaga kesegaran dan kualitas terbaik. Praktis dan lezat untuk keluarga besar.",
-    features: ["Keju Mozarella Premium", "Singkong Pilihan", "Frozen Fresh", "Siap Goreng", "Kemasan Besar"],
-    weight: "1000g per pak",
-    stock: "Tersedia",
-  },
-  {
-    id: 2,
-    name: "Kroket Ragout Ayam Frozen",
-    price: "Rp 20.000",
-    originalPrice: "Rp 22.000",
-    image: "/images/kroket-frozen-mbah-wiryo-1.jpeg",
-    rating: 4.9,
-    reviews: 156,
-    description: "Kroket ragout ayam premium, renyah di luar, lembut di dalam, siap goreng.",
-    features: ["Daging Ayam Pilihan", "Ragout Creamy", "Frozen Fresh", "Siap Goreng", "Halal"],
-    weight: "300g per pak (isi 6 biji)",
-    stock: "Tersedia",
-  },
-]
+// Generate a simple blur data URL for placeholder
+const shimmer = (w: number, h: number) => `
+<svg width="${w}" height="${h}" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+  <defs>
+    <linearGradient id="g">
+      <stop stopColor="#f6f7f8" offset="20%" />
+      <stop stopColor="#edeef1" offset="50%" />
+      <stop stopColor="#f6f7f8" offset="70%" />
+    </linearGradient>
+  </defs>
+  <rect width="${w}" height="${h}" fill="#f6f7f8" />
+  <rect id="r" width="${w}" height="${h}" fill="url(#g)" />
+  <animate xlinkHref="#r" attributeName="x" from="-${w}" to="${w}" dur="1s" repeatCount="indefinite"  />
+</svg>`
+
+const toBase64 = (str: string) =>
+  typeof window === "undefined" ? Buffer.from(str).toString("base64") : window.btoa(str)
 
 export default function FeaturedProducts() {
-  const [selectedProduct, setSelectedProduct] = useState<(typeof products)[0] | null>(null)
   const [showShippingModal, setShowShippingModal] = useState(false)
   const [shippingProduct, setShippingProduct] = useState<string>("")
 
   const handleOrderWhatsApp = (product: (typeof products)[0]) => {
-    const message = `Halo! Saya ingin memesan ${product.name} seharga ${product.price}. Apakah masih tersedia?`
-    const whatsappUrl = `https://wa.me/6282147566278?text=${encodeURIComponent(message)}`
+    const message = generateWhatsAppMessage({
+      productName: product.name,
+      price: product.price,
+      weight: product.specifications.weight,
+      context: "product-list",
+    })
+    const whatsappUrl = getWhatsAppUrl("6282147566278", message)
     window.open(whatsappUrl, "_blank")
   }
 
   const handleCheckShipping = (productName: string) => {
     setShippingProduct(productName)
     setShowShippingModal(true)
+  }
+
+  const handleGeneralInquiry = () => {
+    const message = generateWhatsAppMessage({
+      context: "general",
+      additionalInfo: "Mohon kirim katalog produk lengkap dengan harga terbaru dan informasi cara pemesanan",
+    })
+    const whatsappUrl = getWhatsAppUrl("6282147566278", message)
+    window.open(whatsappUrl, "_blank")
   }
 
   return (
@@ -70,13 +73,18 @@ export default function FeaturedProducts() {
           {products.map((product) => (
             <Card key={product.id} className="group hover:shadow-xl transition-all duration-300 overflow-hidden">
               <div className="relative">
-                <Image
-                  src={product.image || "/placeholder.svg"}
-                  alt={product.name}
-                  width={300}
-                  height={300}
-                  className="w-full h-64 object-cover group-hover:scale-105 transition-transform duration-300"
-                />
+                <div className="relative w-full h-64 overflow-hidden">
+                  <Image
+                    src={product.images[0] || "/placeholder.svg?height=300&width=300&query=frozen+food+product"}
+                    alt={product.name}
+                    fill
+                    className="object-cover group-hover:scale-105 transition-transform duration-300"
+                    placeholder="blur"
+                    blurDataURL={`data:image/svg+xml;base64,${toBase64(shimmer(300, 300))}`}
+                    loading="lazy"
+                    sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+                  />
+                </div>
                 <Badge className="absolute top-4 left-4 bg-red-500 hover:bg-red-600">
                   Hemat{" "}
                   {(
@@ -110,16 +118,21 @@ export default function FeaturedProducts() {
               </CardHeader>
 
               <CardContent className="space-y-4">
-                <p className="text-gray-600 text-sm">{product.description}</p>
+                <p className="text-gray-600 text-sm">{product.shortDescription}</p>
 
                 <div className="space-y-2">
                   <p className="text-sm font-medium text-amber-900">Keunggulan:</p>
                   <div className="flex flex-wrap gap-1">
-                    {product.features.map((feature, index) => (
+                    {product.features.slice(0, 3).map((feature, index) => (
                       <Badge key={index} variant="outline" className="text-xs">
                         {feature}
                       </Badge>
                     ))}
+                    {product.features.length > 3 && (
+                      <Badge variant="outline" className="text-xs">
+                        +{product.features.length - 3} lainnya
+                      </Badge>
+                    )}
                   </div>
                 </div>
 
@@ -128,7 +141,7 @@ export default function FeaturedProducts() {
                     <span className="text-2xl font-bold text-green-600">{product.price}</span>
                     <span className="text-sm text-gray-500 line-through ml-2">{product.originalPrice}</span>
                   </div>
-                  <span className="text-sm text-gray-600">{product.weight}</span>
+                  <span className="text-sm text-gray-600">{product.specifications.weight}</span>
                 </div>
 
                 <div className="grid grid-cols-2 gap-2">
@@ -150,104 +163,19 @@ export default function FeaturedProducts() {
                 </div>
 
                 <Button
+                  asChild
                   variant="ghost"
-                  onClick={() => setSelectedProduct(product)}
                   className="w-full text-amber-700 hover:text-amber-900 hover:bg-amber-50"
                 >
-                  Lihat Detail Lengkap
+                  <Link href={`/produk/${product.slug}`}>
+                    <Eye className="w-4 h-4 mr-2" />
+                    Lihat Detail Lengkap
+                  </Link>
                 </Button>
               </CardContent>
             </Card>
           ))}
         </div>
-
-        {/* Product Detail Modal */}
-        <Dialog open={!!selectedProduct} onOpenChange={() => setSelectedProduct(null)}>
-          <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
-            {selectedProduct && (
-              <>
-                <DialogHeader>
-                  <DialogTitle className="text-2xl text-amber-900">{selectedProduct.name}</DialogTitle>
-                </DialogHeader>
-                <div className="grid md:grid-cols-2 gap-6">
-                  <div>
-                    <Image
-                      src={selectedProduct.image || "/placeholder.svg"}
-                      alt={selectedProduct.name}
-                      width={400}
-                      height={400}
-                      className="w-full rounded-lg"
-                    />
-                  </div>
-                  <div className="space-y-4">
-                    <div className="flex items-center space-x-2">
-                      <div className="flex items-center">
-                        {[...Array(5)].map((_, i) => (
-                          <Star
-                            key={i}
-                            className={`w-5 h-5 ${
-                              i < Math.floor(selectedProduct.rating) ? "text-yellow-400 fill-current" : "text-gray-300"
-                            }`}
-                          />
-                        ))}
-                      </div>
-                      <span className="text-gray-600">
-                        {selectedProduct.rating} ({selectedProduct.reviews} ulasan)
-                      </span>
-                    </div>
-
-                    <p className="text-gray-700">{selectedProduct.description}</p>
-
-                    <div>
-                      <h4 className="font-semibold text-amber-900 mb-2">Keunggulan Produk:</h4>
-                      <ul className="space-y-1">
-                        {selectedProduct.features.map((feature, index) => (
-                          <li key={index} className="flex items-center text-sm text-gray-600">
-                            <span className="w-2 h-2 bg-yellow-400 rounded-full mr-2"></span>
-                            {feature}
-                          </li>
-                        ))}
-                      </ul>
-                    </div>
-
-                    <div className="border-t pt-4">
-                      <div className="flex items-center justify-between mb-4">
-                        <div>
-                          <span className="text-3xl font-bold text-green-600">{selectedProduct.price}</span>
-                          <span className="text-lg text-gray-500 line-through ml-2">
-                            {selectedProduct.originalPrice}
-                          </span>
-                        </div>
-                        <Badge className="bg-green-500 hover:bg-green-600">{selectedProduct.stock}</Badge>
-                      </div>
-
-                      <div className="grid grid-cols-2 gap-3">
-                        <Button
-                          onClick={() => handleOrderWhatsApp(selectedProduct)}
-                          className="bg-green-600 hover:bg-green-700 text-white"
-                        >
-                          <Phone className="w-4 h-4 mr-2" />
-                          Pesan via WhatsApp
-                        </Button>
-                        <Button
-                          variant="outline"
-                          onClick={() => {
-                            setSelectedProduct(null)
-                            handleCheckShipping(selectedProduct.name)
-                          }}
-                          className="border-yellow-400 text-yellow-700 hover:bg-yellow-50"
-                        >
-                          <Truck className="w-4 h-4 mr-2" />
-                          Cek Ongkir
-                        </Button>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </>
-            )}
-          </DialogContent>
-        </Dialog>
 
         {/* Shipping Calculator Modal */}
         <Dialog open={showShippingModal} onOpenChange={setShowShippingModal}>
@@ -265,11 +193,9 @@ export default function FeaturedProducts() {
 
         <div className="text-center mt-12">
           <p className="text-amber-700 mb-4">Ingin melihat semua produk kami?</p>
-          <Button asChild className="bg-yellow-400 hover:bg-yellow-500 text-amber-900 font-bold">
-            <Link href="https://wa.me/6282147566278" target="_blank">
-              <Phone className="w-4 h-4 mr-2" />
-              Hubungi Kami di WhatsApp
-            </Link>
+          <Button onClick={handleGeneralInquiry} className="bg-yellow-400 hover:bg-yellow-500 text-amber-900 font-bold">
+            <Phone className="w-4 h-4 mr-2" />
+            Hubungi Kami di WhatsApp
           </Button>
         </div>
       </div>

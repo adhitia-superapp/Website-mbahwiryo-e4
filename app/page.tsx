@@ -1,23 +1,33 @@
 import HeroSection from "@/components/hero-section"
 import FeaturedProducts from "@/components/featured-products"
 import ProductAdvantages from "@/components/product-advantages"
-import ShippingCalculator from "@/components/shipping-calculator"
-import Testimonials from "@/components/testimonials"
 import ResellerBenefits from "@/components/reseller-benefits"
-import ResellerForm from "@/components/reseller-form"
+import Testimonials from "@/components/testimonials"
 import Footer from "@/components/footer"
+import ScrollToTop from "@/components/scroll-to-top"
 
 export default function Home() {
   return (
-    <main className="min-h-screen">
-      <HeroSection id="home" /> {/* Added id="home" */}
-      <FeaturedProducts />
-      <ProductAdvantages />
-      <ShippingCalculator />
-      <Testimonials />
-      <ResellerBenefits />
-      <ResellerForm />
+    <div className="min-h-screen smooth-scroll-container">
+      <main>
+        <section id="home">
+          <HeroSection />
+        </section>
+        <section id="produk">
+          <FeaturedProducts />
+        </section>
+        <section id="advantages">
+          <ProductAdvantages />
+        </section>
+        <section id="reseller-benefits">
+          <ResellerBenefits />
+        </section>
+        <section id="testimonials">
+          <Testimonials />
+        </section>
+      </main>
       <Footer />
-    </main>
+      <ScrollToTop />
+    </div>
   )
 }

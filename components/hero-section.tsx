@@ -6,13 +6,37 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { Star, ShoppingCart, Truck, Phone, Award, Clock, Snowflake } from "lucide-react"
 import Image from "next/image"
 import ShippingCalculator from "./shipping-calculator"
+import { generateWhatsAppMessage, getWhatsAppUrl } from "@/lib/whatsapp-messages"
+
+// Generate a simple blur data URL for placeholder
+const shimmer = (w: number, h: number) => `
+<svg width="${w}" height="${h}" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+  <defs>
+    <linearGradient id="g">
+      <stop stopColor="#f6f7f8" offset="20%" />
+      <stop stopColor="#edeef1" offset="50%" />
+      <stop stopColor="#f6f7f8" offset="70%" />
+    </linearGradient>
+  </defs>
+  <rect width="${w}" height="${h}" fill="#f6f7f8" />
+  <rect id="r" width="${w}" height="${h}" fill="url(#g)" />
+  <animate xlinkHref="#r" attributeName="x" from="-${w}" to="${w}" dur="1s" repeatCount="indefinite"  />
+</svg>`
+
+const toBase64 = (str: string) =>
+  typeof window === "undefined" ? Buffer.from(str).toString("base64") : window.btoa(str)
 
 export default function HeroSection() {
   const [showShippingModal, setShowShippingModal] = useState(false)
 
   const handleOrderWhatsApp = () => {
-    const message = "Halo! Saya tertarik dengan produk Singkong Keju Frozen Mbah Wiryo. Bisa info lebih lanjut?"
-    const whatsappUrl = `https://wa.me/6282147566278?text=${encodeURIComponent(message)}`
+    const message = generateWhatsAppMessage({
+      productName: "Singkong Keju Original Premium Frozen",
+      price: "Rp 19.000",
+      weight: "1000g per pak",
+      context: "hero",
+    })
+    const whatsappUrl = getWhatsAppUrl("6282147566278", message)
     window.open(whatsappUrl, "_blank")
   }
 
@@ -95,7 +119,7 @@ export default function HeroSection() {
                   <div className="bg-red-500 text-white px-3 py-1 rounded-full text-sm font-semibold">Hemat 17%</div>
                 </div>
               </div>
-              <p className="text-amber-600 text-sm">*Harga per pak (250g) - Belum termasuk ongkir</p>
+              <p className="text-amber-600 text-sm">*Harga per pak (1000g) - Belum termasuk ongkir</p>
             </div>
 
             {/* CTA Buttons */}
@@ -130,13 +154,18 @@ export default function HeroSection() {
           {/* Right Content - Product Image */}
           <div className="relative">
             <div className="relative z-10">
-              <Image
-                src="/images/product-singkong-keju-frozen-mbah-wiryo.jpeg"
-                alt="Singkong Keju Frozen Mbah Wiryo"
-                width={600}
-                height={600}
-                className="w-full max-w-lg mx-auto drop-shadow-2xl"
-              />
+              <div className="relative w-full max-w-lg mx-auto aspect-square">
+                <Image
+                  src="/images/product-singkong-keju-frozen-mbah-wiryo.jpeg"
+                  alt="Singkong Keju Frozen Mbah Wiryo"
+                  fill
+                  className="object-contain drop-shadow-2xl"
+                  placeholder="blur"
+                  blurDataURL={`data:image/svg+xml;base64,${toBase64(shimmer(600, 600))}`}
+                  priority
+                  sizes="(max-width: 768px) 100vw, 50vw"
+                />
+              </div>
 
               {/* Floating Elements */}
               <div className="absolute -top-4 -right-4 bg-yellow-400 text-amber-900 px-4 py-2 rounded-full font-bold shadow-lg animate-bounce">

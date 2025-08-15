@@ -1,5 +1,5 @@
 import { Card, CardContent, CardTitle } from "@/components/ui/card"
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
+import Image from "next/image"
 
 interface Testimonial {
   name: string
@@ -13,21 +13,39 @@ const testimonials: Testimonial[] = [
     name: "Budi Santoso",
     title: "Pengusaha Kuliner",
     quote: "Singkong Keju Mbah Wiryo sangat praktis dan rasanya konsisten. Pelanggan saya suka sekali!",
-    avatar: "/placeholder-user.jpg",
+    avatar: "/placeholder.svg?height=100&width=100",
   },
   {
     name: "Siti Aminah",
     title: "Ibu Rumah Tangga",
     quote: "Anak-anak di rumah selalu minta Singkong Keju Mbah Wiryo. Cemilan sehat dan enak!",
-    avatar: "/placeholder-user.jpg",
+    avatar: "/placeholder.svg?height=100&width=100",
   },
   {
     name: "Joko Susilo",
     title: "Pecinta Kuliner",
     quote: "Teksturnya renyah di luar, lembut di dalam. Keju dan singkongnya pas banget!",
-    avatar: "/placeholder-user.jpg",
+    avatar: "/placeholder.svg?height=100&width=100",
   },
 ]
+
+// Generate a simple blur data URL for placeholder
+const shimmer = (w: number, h: number) => `
+<svg width="${w}" height="${h}" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+  <defs>
+    <linearGradient id="g">
+      <stop stopColor="#f6f7f8" offset="20%" />
+      <stop stopColor="#edeef1" offset="50%" />
+      <stop stopColor="#f6f7f8" offset="70%" />
+    </linearGradient>
+  </defs>
+  <rect width="${w}" height="${h}" fill="#f6f7f8" />
+  <rect id="r" width="${w}" height="${h}" fill="url(#g)" />
+  <animate xlinkHref="#r" attributeName="x" from="-${w}" to="${w}" dur="1s" repeatCount="indefinite"  />
+</svg>`
+
+const toBase64 = (str: string) =>
+  typeof window === "undefined" ? Buffer.from(str).toString("base64") : window.btoa(str)
 
 export default function Testimonials() {
   return (
@@ -44,15 +62,18 @@ export default function Testimonials() {
               <CardContent className="p-6">
                 <p className="text-amber-800 text-lg italic mb-4">"{testimonial.quote}"</p>
                 <div className="flex items-center">
-                  <Avatar className="h-12 w-12 mr-4">
-                    <AvatarImage src={testimonial.avatar || "/placeholder.svg"} alt={testimonial.name} />
-                    <AvatarFallback>
-                      {testimonial.name
-                        .split(" ")
-                        .map((n) => n[0])
-                        .join("")}
-                    </AvatarFallback>
-                  </Avatar>
+                  <div className="relative h-12 w-12 mr-4">
+                    <Image
+                      src={testimonial.avatar || "/placeholder.svg"}
+                      alt={`${testimonial.name} avatar`}
+                      fill
+                      className="rounded-full object-cover"
+                      placeholder="blur"
+                      blurDataURL={`data:image/svg+xml;base64,${toBase64(shimmer(48, 48))}`}
+                      loading="lazy"
+                      sizes="48px"
+                    />
+                  </div>
                   <div>
                     <CardTitle className="text-amber-900 text-lg">{testimonial.name}</CardTitle>
                     <p className="text-amber-600 text-sm">{testimonial.title}</p>

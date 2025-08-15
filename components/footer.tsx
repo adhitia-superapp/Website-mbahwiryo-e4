@@ -1,7 +1,9 @@
+"use client"
+
 import { Button } from "@/components/ui/button"
-import Link from "next/link"
 import { Facebook, Instagram, Twitter, Mail, Phone, MapPin } from "lucide-react"
 import Image from "next/image"
+import SmoothScrollLink from "./smooth-scroll-link"
 
 export default function Footer() {
   return (
@@ -9,9 +11,11 @@ export default function Footer() {
       <div className="container mx-auto px-4 grid grid-cols-1 md:grid-cols-4 gap-8">
         {/* Brand Info */}
         <div className="flex flex-col items-center md:items-start text-center md:text-left">
-          <Link href="#home" className="flex items-center mb-4" prefetch={false}>
-            {" "}
-            {/* Updated to #home */}
+          <SmoothScrollLink
+            href="home"
+            className="flex items-center mb-4 hover:opacity-80 transition-opacity"
+            scrollOptions={{ duration: 600, easing: "easeOut", offset: 0 }}
+          >
             <Image
               src="/logo-mbah-wiryo-singkong-keju-frozen.png"
               alt="Mbah Wiryo Logo"
@@ -20,20 +24,20 @@ export default function Footer() {
               className="mr-2"
             />
             <span className="text-2xl font-bold text-white">Mbah Wiryo</span>
-          </Link>
+          </SmoothScrollLink>
           <p className="text-amber-200 text-sm mb-4">
             Singkong Keju Frozen Gurih, Renyah, Praktis! Nikmati kelezatan khas Mbah Wiryo.
           </p>
           <div className="flex space-x-4">
-            <Link href="#" className="text-amber-200 hover:text-white transition-colors" prefetch={false}>
+            <a href="#" className="text-amber-200 hover:text-white transition-colors">
               <Facebook className="w-6 h-6" />
-            </Link>
-            <Link href="#" className="text-amber-200 hover:text-white transition-colors" prefetch={false}>
+            </a>
+            <a href="#" className="text-amber-200 hover:text-white transition-colors">
               <Instagram className="w-6 h-6" />
-            </Link>
-            <Link href="#" className="text-amber-200 hover:text-white transition-colors" prefetch={false}>
+            </a>
+            <a href="#" className="text-amber-200 hover:text-white transition-colors">
               <Twitter className="w-6 h-6" />
-            </Link>
+            </a>
           </div>
         </div>
 
@@ -42,35 +46,53 @@ export default function Footer() {
           <h3 className="text-lg font-semibold text-white mb-4 text-center md:text-left">Tautan Cepat</h3>
           <ul className="space-y-2 text-center md:text-left">
             <li>
-              <Link href="#produk" className="text-amber-200 hover:text-white transition-colors" prefetch={false}>
-                {" "}
-                {/* Updated to #produk */}
-                Produk
-              </Link>
-            </li>
-            <li>
-              <Link href="#advantages" className="text-amber-200 hover:text-white transition-colors" prefetch={false}>
-                Keunggulan
-              </Link>
-            </li>
-            <li>
-              <Link
-                href="#reseller-benefits"
+              <SmoothScrollLink
+                href="produk"
                 className="text-amber-200 hover:text-white transition-colors"
-                prefetch={false}
+                scrollOptions={{ duration: 800, easing: "easeInOut" }}
+              >
+                Produk
+              </SmoothScrollLink>
+            </li>
+            <li>
+              <SmoothScrollLink
+                href="advantages"
+                className="text-amber-200 hover:text-white transition-colors"
+                scrollOptions={{ duration: 800, easing: "easeInOut" }}
+              >
+                Keunggulan
+              </SmoothScrollLink>
+            </li>
+            <li>
+              <SmoothScrollLink
+                href="reseller-benefits"
+                className="text-amber-200 hover:text-white transition-colors"
+                scrollOptions={{ duration: 800, easing: "easeInOut" }}
               >
                 Reseller
-              </Link>
+              </SmoothScrollLink>
             </li>
             <li>
-              <Link href="#testimonials" className="text-amber-200 hover:text-white transition-colors" prefetch={false}>
+              <SmoothScrollLink
+                href="testimonials"
+                className="text-amber-200 hover:text-white transition-colors"
+                scrollOptions={{ duration: 800, easing: "easeInOut" }}
+              >
                 Testimoni
-              </Link>
+              </SmoothScrollLink>
             </li>
             <li>
-              <Link href="#ongkir" className="text-amber-200 hover:text-white transition-colors" prefetch={false}>
+              <button
+                onClick={() => {
+                  const ongkirSection = document.getElementById("ongkir")
+                  if (ongkirSection) {
+                    ongkirSection.scrollIntoView({ behavior: "smooth" })
+                  }
+                }}
+                className="text-amber-200 hover:text-white transition-colors"
+              >
                 Cek Ongkir
-              </Link>
+              </button>
             </li>
           </ul>
         </div>

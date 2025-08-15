@@ -2,13 +2,14 @@
 
 import { useState, useEffect } from "react"
 import { Button } from "@/components/ui/button"
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { Alert, AlertDescription } from "@/components/ui/alert"
-import { Truck, Clock, Package, MapPin, Phone, AlertTriangle, Loader2, Info } from "lucide-react"
-import Link from "next/link"
+import { Badge } from "@/components/ui/badge"
+import { Separator } from "@/components/ui/separator"
+import { Truck, Package, MapPin, Calculator, MessageSquare, X } from "lucide-react"
+import { generateWhatsAppMessage, getWhatsAppUrl } from "@/lib/whatsapp-messages"
 
 interface Province {
   province_id: string
@@ -17,10 +18,8 @@ interface Province {
 
 interface City {
   city_id: string
-  province_id: string
-  province: string
-  type: string
   city_name: string
+  type: string
   postal_code: string
 }
 
@@ -51,101 +50,59 @@ export default function ShippingCalculator({ isModal = false, onClose, productNa
   const [cities, setCities] = useState<City[]>([])
   const [selectedProvince, setSelectedProvince] = useState("")
   const [selectedCity, setSelectedCity] = useState("")
-  const [quantity, setQuantity] = useState("")
-  const [results, setResults] = useState<CourierResult[]>([])
-  const [totalWeight, setTotalWeight] = useState(0)
-  const [showResults, setShowResults] = useState(false)
-  const [loading, setLoading] = useState(false)
-  const [loadingProvinces, setLoadingProvinces] = useState(true)
-  const [loadingCities, setLoadingCities] = useState(false)
-  const [isUsingFallback, setIsUsingFallback] = useState(false)
+  const [weight, setWeight] = useState("1000") // Default 1kg
+  const [quantity, setQuantity] = useState(1)
+  const [shippingResults, setShippingResults] = useState<CourierResult[]>([])
+  const [isLoading, setIsLoading] = useState(false)
+  const [error, setError] = useState("")
 
-  // Origin city (Sleman, Yogyakarta)
-  const originCityId = "419" // Sleman city ID in RajaOngkir
-
-  // Available couriers for frozen products
-  const frozenCouriers = ["jne", "pos", "tiki"]
-
-  // Fetch provinces on component mount
+  // Load provinces on component mount
   useEffect(() => {
     fetchProvinces()
   }, [])
 
   const fetchProvinces = async () => {
     try {
-      setLoadingProvinces(true)
-
       const response = await fetch("/api/rajaongkir/province")
-
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`)
-      }
-
       const data = await response.json()
-
       if (data.rajaongkir?.results) {
         setProvinces(data.rajaongkir.results)
-        // Check if we're using fallback data (less than 20 provinces means likely fallback)
-        setIsUsingFallback(data.rajaongkir.results.length < 20)
-      } else {
-        throw new Error("Invalid response format")
       }
     } catch (error) {
       console.error("Error fetching provinces:", error)
-      setIsUsingFallback(true)
-
-      // Set minimal fallback provinces
-      setProvinces([
-        { province_id: "5", province: "DI Yogyakarta" },
-        { province_id: "6", province: "DKI Jakarta" },
-        { province_id: "9", province: "Jawa Barat" },
-        { province_id: "10", province: "Jawa Tengah" },
-        { province_id: "11", province: "Jawa Timur" },
-      ])
-    } finally {
-      setLoadingProvinces(false)
+      setError("Gagal memuat data provinsi")
     }
   }
 
   const fetchCities = async (provinceId: string) => {
     try {
-      setLoadingCities(true)
-
       const response = await fetch(`/api/rajaongkir/city?province=${provinceId}`)
-
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`)
-      }
-
       const data = await response.json()
-
       if (data.rajaongkir?.results) {
         setCities(data.rajaongkir.results)
-      } else {
-        throw new Error("Invalid response format")
       }
     } catch (error) {
       console.error("Error fetching cities:", error)
-      setCities([])
-    } finally {
-      setLoadingCities(false)
+      setError("Gagal memuat data kota")
     }
   }
 
   const calculateShipping = async () => {
-    if (!selectedCity || !quantity) return
+    if (!selectedCity || !weight) {
+      setError("Mohon lengkapi semua field")
+      return
+    }
+
+    setIsLoading(true)
+    setError("")
+    setShippingResults([])
 
     try {
-      setLoading(true)
+      const totalWeight = Number.parseInt(weight) * quantity
+      const couriers = ["jne", "pos", "tiki"]
+      const results: CourierResult[] = []
 
-      const qty = Number.parseInt(quantity)
-      const weight = qty * 250 // 250 gram per pak
-      setTotalWeight(weight)
-
-      const shippingResults: CourierResult[] = []
-
-      // Fetch shipping costs for each courier
-      for (const courier of frozenCouriers) {
+      for (const courier of couriers) {
         try {
           const response = await fetch("/api/rajaongkir/cost", {
             method: "POST",
@@ -153,311 +110,263 @@ export default function ShippingCalculator({ isModal = false, onClose, productNa
               "Content-Type": "application/json",
             },
             body: JSON.stringify({
-              origin: originCityId,
+              origin: "444", // Kota Semarang (sesuaikan dengan lokasi Anda)
               destination: selectedCity,
-              weight: weight,
+              weight: totalWeight,
               courier: courier,
             }),
           })
 
-          if (!response.ok) {
-            console.warn(`Failed to fetch ${courier} rates: ${response.status}`)
-            continue
-          }
-
           const data = await response.json()
-
           if (data.rajaongkir?.results?.[0]) {
-            const result = data.rajaongkir.results[0]
-            shippingResults.push(result)
+            results.push(data.rajaongkir.results[0])
           }
-        } catch (error) {
-          console.error(`Error fetching ${courier} rates:`, error)
+        } catch (courierError) {
+          console.error(`Error fetching ${courier} costs:`, courierError)
         }
       }
 
-      setResults(shippingResults)
-      setShowResults(true)
+      setShippingResults(results)
     } catch (error) {
       console.error("Error calculating shipping:", error)
+      setError("Gagal menghitung ongkos kirim")
     } finally {
-      setLoading(false)
+      setIsLoading(false)
     }
-  }
-
-  const formatCurrency = (amount: number) => {
-    return new Intl.NumberFormat("id-ID", {
-      style: "currency",
-      currency: "IDR",
-      minimumFractionDigits: 0,
-    }).format(amount)
-  }
-
-  const formatWeight = (grams: number) => {
-    if (grams >= 1000) {
-      return `${(grams / 1000).toFixed(1)} kg`
-    }
-    return `${grams} gram`
   }
 
   const handleProvinceChange = (provinceId: string) => {
     setSelectedProvince(provinceId)
     setSelectedCity("")
     setCities([])
-    setShowResults(false)
-    fetchCities(provinceId)
+    setShippingResults([])
+    if (provinceId) {
+      fetchCities(provinceId)
+    }
   }
 
-  const handleCityChange = (cityId: string) => {
-    setSelectedCity(cityId)
-    setShowResults(false)
+  const handleOrderWithShipping = (courier: string, service: string, cost: number, etd: string) => {
+    const selectedProvinceName = provinces.find((p) => p.province_id === selectedProvince)?.province || ""
+    const selectedCityName = cities.find((c) => c.city_id === selectedCity)?.city_name || ""
+    const fullAddress = `${selectedCityName}, ${selectedProvinceName}`
+
+    const message = generateWhatsAppMessage({
+      productName: productName || "Produk Mbah Wiryo",
+      quantity: quantity,
+      customerAddress: fullAddress,
+      shippingService: `${courier.toUpperCase()} - ${service}`,
+      shippingCost: `Rp ${cost.toLocaleString()}`,
+      additionalInfo: `Estimasi pengiriman: ${etd} hari`,
+      context: "shipping",
+    })
+
+    const whatsappUrl = getWhatsAppUrl("6282147566278", message)
+    window.open(whatsappUrl, "_blank")
   }
 
-  const selectedCityName = cities.find((city) => city.city_id === selectedCity)?.city_name || ""
+  return (
+    <div className={`${isModal ? "" : "py-16 bg-gradient-to-br from-blue-50 to-indigo-50"}`}>
+      <div className={`${isModal ? "" : "container mx-auto px-4"}`}>
+        {!isModal && (
+          <div className="text-center mb-12">
+            <h2 className="text-3xl md:text-4xl font-bold text-amber-900 mb-4">Kalkulator Ongkos Kirim</h2>
+            <p className="text-amber-700 text-lg max-w-2xl mx-auto">
+              Hitung ongkos kirim ke seluruh Indonesia dengan berbagai pilihan kurir
+            </p>
+          </div>
+        )}
 
-  const content = (
-    <div className="max-w-4xl mx-auto">
-      {!isModal && (
-        <div className="text-center mb-12">
-          <h2 className="text-3xl md:text-4xl font-bold text-amber-900 mb-4">Kalkulator Ongkos Kirim</h2>
-          <p className="text-amber-700 text-lg">Hitung estimasi biaya pengiriman Singkong Keju Frozen ke kota Anda</p>
-        </div>
-      )}
+        <Card className={`${isModal ? "" : "max-w-4xl mx-auto"} bg-white/90 backdrop-blur-sm shadow-xl`}>
+          {isModal && onClose && (
+            <div className="flex justify-end p-4 pb-0">
+              <Button variant="ghost" size="sm" onClick={onClose}>
+                <X className="w-4 h-4" />
+              </Button>
+            </div>
+          )}
 
-      {isModal && productName && (
-        <div className="text-center mb-6">
-          <h3 className="text-xl font-bold text-amber-900 mb-2">Cek Ongkir untuk {productName}</h3>
-          <p className="text-amber-700">Hitung estimasi biaya pengiriman ke kota Anda</p>
-        </div>
-      )}
-
-      {/* Fallback mode notification */}
-      {isUsingFallback && (
-        <Alert className="mb-6 border-blue-400 bg-blue-50">
-          <Info className="h-4 w-4 text-blue-600" />
-          <AlertDescription className="text-blue-800">
-            <strong>Mode Estimasi:</strong> Menggunakan data perkiraan ongkir. Untuk harga akurat dan real-time, silakan
-            hubungi kami via WhatsApp.
-          </AlertDescription>
-        </Alert>
-      )}
-
-      {/* Alert untuk produk frozen */}
-      <Alert className="mb-8 border-yellow-400 bg-yellow-50">
-        <AlertTriangle className="h-4 w-4 text-yellow-600" />
-        <AlertDescription className="text-yellow-800">
-          <strong>Penting:</strong> Produk frozen hanya dikirim dengan kurir terpercaya untuk menjaga kualitas dan
-          kesegaran.
-        </AlertDescription>
-      </Alert>
-
-      <div className="grid lg:grid-cols-2 gap-8">
-        {/* Input Form */}
-        <Card className="shadow-lg">
-          <CardHeader className="bg-gradient-to-r from-yellow-400 to-amber-400 text-amber-900 rounded-t-lg">
-            <CardTitle className="flex items-center space-x-2">
-              <Package className="w-5 h-5" />
-              <span>Hitung Ongkir</span>
+          <CardHeader>
+            <CardTitle className="text-amber-900 flex items-center">
+              <Calculator className="w-5 h-5 mr-2" />
+              {productName ? `Ongkir untuk ${productName}` : "Kalkulator Ongkos Kirim"}
             </CardTitle>
           </CardHeader>
-          <CardContent className="p-6 space-y-6">
-            <div>
-              <Label htmlFor="province" className="text-amber-900 font-medium flex items-center space-x-2">
-                <MapPin className="w-4 h-4" />
-                <span>Provinsi Tujuan</span>
-              </Label>
-              <Select onValueChange={handleProvinceChange} disabled={loadingProvinces}>
-                <SelectTrigger className="mt-2">
-                  <SelectValue placeholder={loadingProvinces ? "Memuat provinsi..." : "Pilih provinsi tujuan"} />
-                </SelectTrigger>
-                <SelectContent>
-                  {provinces.map((province) => (
-                    <SelectItem key={province.province_id} value={province.province_id}>
-                      {province.province}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
 
-            <div>
-              <Label htmlFor="city" className="text-amber-900 font-medium flex items-center space-x-2">
-                <MapPin className="w-4 h-4" />
-                <span>Kota/Kabupaten Tujuan</span>
-              </Label>
-              <Select onValueChange={handleCityChange} disabled={!selectedProvince || loadingCities}>
-                <SelectTrigger className="mt-2">
-                  <SelectValue
-                    placeholder={
-                      !selectedProvince
-                        ? "Pilih provinsi terlebih dahulu"
-                        : loadingCities
-                          ? "Memuat kota..."
-                          : "Pilih kota/kabupaten tujuan"
-                    }
-                  />
-                </SelectTrigger>
-                <SelectContent>
-                  {cities.map((city) => (
-                    <SelectItem key={city.city_id} value={city.city_id}>
-                      {city.type} {city.city_name}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
+          <CardContent className="space-y-6">
+            {/* Product Info */}
+            <div className="grid md:grid-cols-2 gap-4">
+              <div>
+                <Label className="text-amber-800">Jumlah Produk</Label>
+                <div className="flex items-center space-x-2">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => setQuantity(Math.max(1, quantity - 1))}
+                    className="w-8 h-8 p-0"
+                  >
+                    -
+                  </Button>
+                  <span className="w-12 text-center font-medium">{quantity}</span>
+                  <Button variant="outline" size="sm" onClick={() => setQuantity(quantity + 1)} className="w-8 h-8 p-0">
+                    +
+                  </Button>
+                  <span className="text-sm text-amber-600">pak</span>
+                </div>
+              </div>
 
-            <div>
-              <Label htmlFor="quantity" className="text-amber-900 font-medium flex items-center space-x-2">
-                <Package className="w-4 h-4" />
-                <span>Jumlah Pesanan</span>
-              </Label>
-              <Input
-                id="quantity"
-                type="number"
-                min="1"
-                value={quantity}
-                onChange={(e) => setQuantity(e.target.value)}
-                className="mt-2"
-                placeholder="Masukkan jumlah pak"
-              />
-              {quantity && (
-                <p className="text-sm text-amber-600 mt-1">
-                  Estimasi berat: {formatWeight(Number.parseInt(quantity) * 250)}
+              <div>
+                <Label htmlFor="weight" className="text-amber-800">
+                  Berat per Pak (gram)
+                </Label>
+                <Input
+                  id="weight"
+                  type="number"
+                  value={weight}
+                  onChange={(e) => setWeight(e.target.value)}
+                  className="border-amber-200 focus:border-amber-400"
+                  placeholder="1000"
+                />
+                <p className="text-xs text-amber-600 mt-1">
+                  Total berat: {(Number.parseInt(weight || "0") * quantity).toLocaleString()} gram
                 </p>
-              )}
+              </div>
             </div>
 
+            {/* Destination */}
+            <div className="space-y-4">
+              <h3 className="font-semibold text-amber-900 flex items-center">
+                <MapPin className="w-4 h-4 mr-2" />
+                Tujuan Pengiriman
+              </h3>
+
+              <div className="grid md:grid-cols-2 gap-4">
+                <div>
+                  <Label className="text-amber-800">Provinsi</Label>
+                  <Select value={selectedProvince} onValueChange={handleProvinceChange}>
+                    <SelectTrigger className="border-amber-200 focus:border-amber-400">
+                      <SelectValue placeholder="Pilih provinsi" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {provinces.map((province) => (
+                        <SelectItem key={province.province_id} value={province.province_id}>
+                          {province.province}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                <div>
+                  <Label className="text-amber-800">Kota/Kabupaten</Label>
+                  <Select value={selectedCity} onValueChange={setSelectedCity} disabled={!selectedProvince}>
+                    <SelectTrigger className="border-amber-200 focus:border-amber-400">
+                      <SelectValue placeholder="Pilih kota" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {cities.map((city) => (
+                        <SelectItem key={city.city_id} value={city.city_id}>
+                          {city.type} {city.city_name}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+            </div>
+
+            {/* Calculate Button */}
             <Button
               onClick={calculateShipping}
-              disabled={!selectedCity || !quantity || loading}
-              className="w-full bg-yellow-400 hover:bg-yellow-500 text-amber-900 font-bold py-3 text-lg"
+              disabled={isLoading || !selectedCity || !weight}
+              className="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3"
             >
-              {loading ? (
+              {isLoading ? (
                 <>
-                  <Loader2 className="w-5 h-5 mr-2 animate-spin" />
+                  <Package className="w-4 h-4 mr-2 animate-spin" />
                   Menghitung...
                 </>
               ) : (
                 <>
-                  <Truck className="w-5 h-5 mr-2" />
-                  Hitung Ongkir
+                  <Calculator className="w-4 h-4 mr-2" />
+                  Hitung Ongkos Kirim
                 </>
               )}
             </Button>
 
-            {/* Manual option */}
-            <div className="border-t pt-4">
-              <p className="text-sm text-amber-700 mb-3">
-                Butuh bantuan atau ingin harga yang lebih akurat? Hubungi kami:
-              </p>
-              <Button
-                asChild
-                variant="outline"
-                className="w-full border-yellow-400 text-yellow-700 hover:bg-yellow-50 bg-transparent"
-              >
-                <Link href="https://wa.me/6282147566278" target="_blank">
-                  <Phone className="w-4 h-4 mr-2" />
-                  WhatsApp: 0821-4756-6278
-                </Link>
-              </Button>
-            </div>
-          </CardContent>
-        </Card>
-
-        {/* Results */}
-        <div className="space-y-4">
-          {showResults && results.length > 0 && (
-            <>
-              <div className="bg-white p-4 rounded-lg shadow-md">
-                <h3 className="font-bold text-amber-900 mb-2">Detail Pengiriman</h3>
-                <div className="text-sm text-amber-700 space-y-1">
-                  <p>
-                    <strong>Dari:</strong> Sleman, Yogyakarta
-                  </p>
-                  <p>
-                    <strong>Ke:</strong> {selectedCityName}
-                  </p>
-                  <p>
-                    <strong>Berat:</strong> {formatWeight(totalWeight)}
-                  </p>
-                  <p>
-                    <strong>Jumlah:</strong> {quantity} pak
-                  </p>
-                </div>
+            {/* Error Message */}
+            {error && (
+              <div className="bg-red-50 border border-red-200 rounded-lg p-4">
+                <p className="text-red-700 text-sm">{error}</p>
               </div>
+            )}
 
-              {results.map((courier, courierIndex) => (
-                <div key={courierIndex} className="space-y-2">
-                  <h4 className="font-bold text-amber-900 text-lg">{courier.name}</h4>
-                  {courier.costs.map((cost, costIndex) => (
-                    <Card key={costIndex} className="shadow-md hover:shadow-lg transition-shadow">
+            {/* Shipping Results */}
+            {shippingResults.length > 0 && (
+              <div className="space-y-4">
+                <h3 className="font-semibold text-amber-900 flex items-center">
+                  <Truck className="w-4 h-4 mr-2" />
+                  Pilihan Pengiriman
+                </h3>
+
+                <div className="space-y-3">
+                  {shippingResults.map((courier) => (
+                    <Card key={courier.code} className="border-amber-200">
                       <CardContent className="p-4">
-                        <div className="flex justify-between items-start mb-2">
-                          <div>
-                            <h5 className="font-bold text-amber-900">{cost.service}</h5>
-                            <p className="text-sm text-amber-600">{cost.description}</p>
-                          </div>
-                          <div className="text-right">
-                            <p className="text-xl font-bold text-green-600">{formatCurrency(cost.cost[0].value)}</p>
-                          </div>
+                        <div className="flex items-center justify-between mb-3">
+                          <h4 className="font-semibold text-amber-900 uppercase">{courier.name}</h4>
+                          <Badge variant="outline">{courier.code.toUpperCase()}</Badge>
                         </div>
-                        <div className="flex items-center text-sm text-amber-700">
-                          <Clock className="w-4 h-4 mr-1" />
-                          <span>Estimasi: {cost.cost[0].etd} hari</span>
+
+                        <div className="space-y-2">
+                          {courier.costs.map((cost, index) => (
+                            <div key={index}>
+                              {cost.cost.map((option, optionIndex) => (
+                                <div
+                                  key={optionIndex}
+                                  className="flex items-center justify-between p-3 bg-amber-50 rounded-lg"
+                                >
+                                  <div>
+                                    <p className="font-medium text-amber-900">{cost.service}</p>
+                                    <p className="text-sm text-amber-700">{cost.description}</p>
+                                    <p className="text-xs text-amber-600">Estimasi: {option.etd} hari</p>
+                                  </div>
+                                  <div className="text-right">
+                                    <p className="font-bold text-green-600 text-lg">
+                                      Rp {option.value.toLocaleString()}
+                                    </p>
+                                    <Button
+                                      size="sm"
+                                      onClick={() =>
+                                        handleOrderWithShipping(courier.name, cost.service, option.value, option.etd)
+                                      }
+                                      className="bg-green-600 hover:bg-green-700 text-white mt-2"
+                                    >
+                                      <MessageSquare className="w-3 h-3 mr-1" />
+                                      Pesan
+                                    </Button>
+                                  </div>
+                                </div>
+                              ))}
+                              {index < courier.costs.length - 1 && <Separator className="my-2" />}
+                            </div>
+                          ))}
                         </div>
-                        {cost.cost[0].note && <p className="text-xs text-gray-500 mt-1">{cost.cost[0].note}</p>}
                       </CardContent>
                     </Card>
                   ))}
                 </div>
-              ))}
 
-              <div className="bg-green-50 border border-green-200 rounded-lg p-4">
-                <p className="text-green-800 text-sm">
-                  <strong>💡 Tips:</strong> Untuk pemesanan dalam jumlah besar (50+ pak), hubungi kami untuk mendapatkan
-                  harga khusus reseller dan diskon ongkir!
-                </p>
+                <div className="bg-amber-50 border border-amber-200 rounded-lg p-4">
+                  <p className="text-amber-800 text-sm">
+                    <strong>Catatan:</strong> Ongkos kirim dapat berubah sewaktu-waktu sesuai kebijakan kurir. Estimasi
+                    waktu pengiriman tidak termasuk hari libur dan dapat berbeda tergantung kondisi.
+                  </p>
+                </div>
               </div>
-            </>
-          )}
-
-          {showResults && results.length === 0 && !loading && (
-            <Card className="shadow-md">
-              <CardContent className="p-6 text-center">
-                <p className="text-amber-700 mb-4">
-                  Tidak ada layanan pengiriman yang tersedia ke {selectedCityName}. Silakan hubungi kami via WhatsApp
-                  untuk informasi lebih lanjut.
-                </p>
-                <Button asChild className="bg-yellow-400 hover:bg-yellow-500 text-amber-900">
-                  <Link href="https://wa.me/6282147566278" target="_blank">
-                    <Phone className="w-4 h-4 mr-2" />
-                    Hubungi WhatsApp
-                  </Link>
-                </Button>
-              </CardContent>
-            </Card>
-          )}
-        </div>
+            )}
+          </CardContent>
+        </Card>
       </div>
-
-      {isModal && (
-        <div className="flex justify-end mt-6">
-          <Button onClick={onClose} variant="outline" className="mr-2 bg-transparent">
-            Tutup
-          </Button>
-        </div>
-      )}
     </div>
-  )
-
-  if (isModal) {
-    return content
-  }
-
-  return (
-    <section id="ongkir" className="py-16 bg-gradient-to-br from-amber-50 to-yellow-50">
-      <div className="container mx-auto px-4">{content}</div>
-    </section>
   )
 }

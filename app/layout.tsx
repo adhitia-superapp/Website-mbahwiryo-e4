@@ -68,7 +68,7 @@ export const metadata: Metadata = {
       "https://hebbkx1anhila5yf.public.blob.vercel-storage.com/Product%20singkong%20keju%20Frozen%20mbah%20wiryo-egS2886Ffu7F5ycAr62K7yGp0MnITB.jpeg",
     ], // Gambar Singkong Keju Frozen
   },
-    generator: 'v0.dev'
+    generator: 'v0.app'
 }
 
 export default function RootLayout({
